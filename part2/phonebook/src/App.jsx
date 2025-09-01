@@ -62,7 +62,9 @@ const App = () => {
         })
         .catch((error) => {
           console.error("Error updating person:", error);
-          setMessage(`Unable to update info for ${newPerson.name}`, "error");
+          const errorMessage =
+            error.response?.data?.error || `Unable to update ${newPerson.name}`;
+          setMessage(errorMessage, "error");
         });
     }
   };
@@ -78,7 +80,9 @@ const App = () => {
       })
       .catch((error) => {
         console.error("Error adding person:", error);
-        setMessage(`Unable to add ${newPerson.name}`, "error");
+        const errorMessage =
+          error.response?.data?.error || `Unable to add ${newPerson.name}`;
+        setMessage(errorMessage, "error");
       });
   };
 
