@@ -313,44 +313,6 @@ describe('update blog', () => {
 
     assert(response.body.error.includes('token missing'))
   })
-
-  test('fails with 401 if user tries to update another user\'s blog', async () => {
-    // Create another user
-    const passwordHash = await bcrypt.hash('anotherpassword', 10)
-    const anotherUser = new User({
-      username: 'anotheruserput',
-      name: 'Another User Put',
-      passwordHash
-    })
-    const savedAnotherUser = await anotherUser.save()
-
-    // Create token for another user
-    const anotherToken = jwt.sign({ id: savedAnotherUser._id }, process.env.SECRET)
-
-    const blogsAtStart = await blogsInDb()
-    const blogToUpdate = blogsAtStart[0] // This belongs to testuser
-
-    const updatedData = {
-      title: 'Unauthorized Update',
-      author: 'Hacker',
-      url: 'http://malicious.com',
-      likes: 666
-    }
-
-    const response = await api
-      .put(`/api/blogs/${blogToUpdate.id}`)
-      .set('Authorization', `Bearer ${anotherToken}`)
-      .send(updatedData)
-      .expect(401)
-
-    assert(response.body.error.includes('unauthorized'))
-
-    // Verify blog was not updated
-    const blogsAtEnd = await blogsInDb()
-    const unchangedBlog = blogsAtEnd.find(blog => blog.id === blogToUpdate.id)
-    assert.strictEqual(unchangedBlog.title, blogToUpdate.title)
-    assert.strictEqual(unchangedBlog.author, blogToUpdate.author)
-  })
 })
 
 after(async () => {

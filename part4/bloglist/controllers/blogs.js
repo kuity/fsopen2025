@@ -3,7 +3,10 @@ const Blog = require('../models/blog')
 const middleware = require('../utils/middleware')
 
 blogsRouter.get('/', async (request, response) => {
-  const blogs = await Blog.find({})
+  const blogs = await Blog
+    .find({})
+    .populate('user', 'username name')
+
   return response.json(blogs)
 })
 
@@ -11,7 +14,7 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   const user = request.user
   const blog = new Blog({
     ...request.body,
-    user: user._id
+    user: user._id,
   })
 
   const savedBlog = await blog.save()
@@ -21,32 +24,35 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
   response.status(201).json(savedBlog)
 })
 
-blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
-  const user = request.user
-  const blog = await Blog.findById(request.params.id)
-  if (!blog) {
-    return response.status(404).end()
-  }
+blogsRouter.delete(
+  '/:id',
+  middleware.userExtractor,
+  async (request, response) => {
+    const user = request.user
+    const blog = await Blog.findById(request.params.id)
+    if (!blog) {
+      return response.status(404).end()
+    }
 
-  if (user._id.toString() !== blog.user.toString()) {
-    return response.status(401).json({ error: 'unauthorized - you can only delete your own blogs' })
+    if (user._id.toString() !== blog.user.toString()) {
+      return response
+        .status(401)
+        .json({ error: 'unauthorized - you can only delete your own blogs' })
+    }
+    await blog.deleteOne()
+    user.blogs = user.blogs.filter(
+      (blogId) => blogId.toString() !== request.params.id
+    )
+    await user.save()
+    response.status(204).end()
   }
-  await blog.deleteOne()
-  user.blogs = user.blogs.filter(blogId => blogId.toString() !== request.params.id)
-  await user.save()
-  response.status(204).end()
-})
+)
 
 blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
-  const user = request.user
   const blog = await Blog.findById(request.params.id)
 
   if (!blog) {
     return response.status(404).end()
-  }
-
-  if (user._id.toString() !== blog.user.toString()) {
-    return response.status(401).json({ error: 'unauthorized - you can only update your own blogs' })
   }
 
   const updatedBlog = await Blog.findByIdAndUpdate(
@@ -55,6 +61,7 @@ blogsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
     { new: true, runValidators: true }
   )
 
+  await updatedBlog.populate('user')
   response.status(200).json(updatedBlog)
 })
 

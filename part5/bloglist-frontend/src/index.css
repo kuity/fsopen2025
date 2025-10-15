@@ -1,0 +1,29 @@
+.error {
+  color: red;
+  background: lightgrey;
+  font-size: 20px;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.success {
+  color: green;
+  background: lightgrey;
+  font-size: 20px;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.blogpost {
+  border: 1px solid black;
+  margin: 0.3rem 0rem;
+  padding: 0.3rem 0.2rem 0.1rem 0.2rem;
+}
+
+.deleteBlog {
+    background-color: skyblue;
+}
